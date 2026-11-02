@@ -1,1 +1,249 @@
 
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HairCheck</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f8f7f2;color:#20372d;font-family:Arial,sans-serif}
+header{background:#315d49;color:white;padding:25px 18px;text-align:center}
+header h1{font-size:32px;margin:5px}
+header p{margin:8px}
+main{max-width:650px;margin:auto;padding:18px}
+.card{background:white;border:1px solid #e5e4dc;border-radius:18px;padding:18px;margin:15px 0;box-shadow:0 3px 12px #00000008}
+h2{font-size:21px}
+input,select,button{font:inherit;border-radius:12px;padding:13px;border:1px solid #ccc;width:100%;margin:6px 0}
+button{background:#315d49;color:white;border:0;font-weight:bold;cursor:pointer}
+button.secondary{background:#e9efe9;color:#315d49}
+.row{display:flex;gap:8px;align-items:center}
+.row button{width:auto;flex:1}
+.small{color:#66766d;font-size:13px;line-height:1.6}
+.product{border:1px solid #e5e5e5;padding:12px;border-radius:12px;margin:10px 0;cursor:pointer;display:flex;gap:12px;align-items:center}
+.product img{width:65px;height:65px;object-fit:contain}
+.tag{display:inline-block;background:#e9efe9;padding:6px 10px;border-radius:20px;margin:4px;font-size:13px}
+#message{color:#a04b36}
+#details img{max-width:130px;max-height:130px;object-fit:contain}
+footer{text-align:center;color:#819087;padding:20px;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+<h1>🌿 HairCheck</h1>
+<p id="subtitle">בודקים מה באמת יש במוצרי השיער</p>
+<button class="secondary" onclick="toggleLanguage()" style="width:auto">עברית / English</button>
+</header>
+
+<main>
+<section class="card">
+<h2 id="searchTitle">🔎 חיפוש מוצר</h2>
+<input id="searchInput" placeholder="שם מוצר או מותג, למשל Pantene">
+<button onclick="searchProducts()" id="searchButton">חיפוש מוצרים</button>
+<div class="row">
+<input id="barcodeInput" placeholder="הקלדת מספר ברקוד" inputmode="numeric">
+<button onclick="barcodeSearch()" id="barcodeButton">ברקוד</button>
+</div>
+<button class="secondary" onclick="scanBarcode()" id="scanButton">📷 סריקה במצלמה</button>
+<p class="small" id="cameraNote">סריקה במצלמה תלויה בתמיכת הדפדפן ובאישור גישה למצלמה.</p>
+<p id="message" role="status"></p>
+</section>
+
+<section class="card">
+<h2 id="profileTitle">👤 פרופיל השיער שלי</h2>
+<label id="hairLabel">סוג שיער</label>
+<select id="hairType">
+<option value="all">לא משנה</option>
+<option value="dry">יבש</option>
+<option value="oily">שומני</option>
+<option value="curly">מתולתל</option>
+<option value="normal">רגיל</option>
+</select>
+<label id="scalpLabel">מצב הקרקפת</label>
+<select id="scalp">
+<option value="all">לא משנה</option>
+<option value="dry">יבשה</option>
+<option value="oily">שומנית</option>
+<option value="sensitive">רגישה</option>
+</select>
+<p class="small" id="profileNote">הפרופיל משמש להתאמה כללית בלבד ואינו אבחון רפואי.</p>
+</section>
+
+<section class="card">
+<h2 id="resultsTitle">תוצאות חיפוש</h2>
+<div id="results"></div>
+</section>
+
+<section class="card" id="details">
+<h2 id="detailsTitle">ניתוח מוצר</h2>
+<p class="small" id="emptyDetails">בחר מוצר מתוצאות החיפוש כדי לראות את המידע והרכיבים שלו.</p>
+</section>
+</main>
+<footer>HairCheck · מידע על רכיבים ממאגר Open Beauty Facts</footer>
+
+<script>
+let english=false;
+let selected=null;
+const $=id=>document.getElementById(id);
+
+function say(he,en){return english?en:he}
+function toggleLanguage(){
+ english=!english;
+ document.documentElement.lang=english?"en":"he";
+ document.documentElement.dir=english?"ltr":"rtl";
+ $("subtitle").textContent=say("בודקים מה באמת יש במוצרי השיער","Discover what's in your hair products");
+ $("searchTitle").textContent=say("🔎 חיפוש מוצר","🔎 Search products");
+ $("searchInput").placeholder=say("שם מוצר או מותג, למשל Pantene","Product name or brand, e.g. Pantene");
+ $("searchButton").textContent=say("חיפוש מוצרים","Search products");
+ $("barcodeInput").placeholder=say("הקלדת מספר ברקוד","Enter barcode number");
+ $("barcodeButton").textContent=say("ברקוד","Barcode");
+ $("scanButton").textContent=say("📷 סריקה במצלמה","📷 Scan with camera");
+ $("profileTitle").textContent=say("👤 פרופיל השיער שלי","👤 My hair profile");
+ $("hairLabel").textContent=say("סוג שיער","Hair type");
+ $("scalpLabel").textContent=say("מצב הקרקפת","Scalp type");
+ $("profileNote").textContent=say("הפרופיל משמש להתאמה כללית בלבד ואינו אבחון רפואי.","Your profile is for general guidance only, not a medical assessment.");
+ $("resultsTitle").textContent=say("תוצאות חיפוש","Search results");
+ $("detailsTitle").textContent=say("ניתוח מוצר","Product analysis");
+ $("emptyDetails").textContent=say("בחר מוצר מתוצאות החיפוש כדי לראות את המידע והרכיבים שלו.","Select a product to see its information and ingredients.");
+}
+
+async function api(url){
+ const r=await fetch(url);
+ if(!r.ok) throw Error("API "+r.status);
+ return await r.json();
+}
+
+async function searchProducts(){
+ const term=$("searchInput").value.trim();
+ if(!term){$("message").textContent=say("נא להקליד שם מוצר.","Please enter a product name.");return}
+ $("message").textContent=say("מחפש מוצרים...","Searching...");
+ $("results").innerHTML="";
+ try{
+ const url="https://world.openbeautyfacts.org/cgi/search.pl?search_terms="+encodeURIComponent(term)+"&search_simple=1&action=process&json=1&page_size=20";
+ const data=await api(url);
+ showResults(data.products||[]);
+ }catch(e){
+ $("message").textContent=say("לא הצלחתי להתחבר למאגר. נסה שוב מאוחר יותר.","Could not connect to the database. Try again later.");
+ }
+}
+
+async function barcodeSearch(){
+ const code=$("barcodeInput").value.trim();
+ if(!/^[0-9]{8,14}$/.test(code)){
+ $("message").textContent=say("יש להקליד ברקוד תקין.","Enter a valid barcode.");return;
+ }
+ $("message").textContent=say("מחפש ברקוד...","Looking up barcode...");
+ try{
+ const data=await api("https://world.openbeautyfacts.org/api/v3/product/"+encodeURIComponent(code)+".json");
+ if(data.status===1 && data.product) showResults([data.product]);
+ else $("message").textContent=say("המוצר לא נמצא במאגר.","Product not found in the database.");
+ }catch(e){
+ $("message").textContent=say("שגיאה בחיבור למאגר.","Database connection error.");
+ }
+}
+
+function showResults(products){
+ $("results").innerHTML="";
+ const filtered=products.filter(p=>{
+ const text=((p.product_name||"")+" "+(p.categories||"")).toLowerCase();
+ return /shampoo|conditioner|hair|mask|serum|שיער|שמפו|מרכך/.test(text) || !p.categories;
+ });
+ if(!filtered.length){
+ $("message").textContent=say("לא נמצאו מוצרים. המאגר לא כולל את כל המוצרים.","No products found. The database does not contain every product.");
+ return;
+ }
+ $("message").textContent=say("נמצאו "+filtered.length+" תוצאות","Found "+filtered.length+" results");
+ filtered.forEach(p=>{
+ const el=document.createElement("div");
+ el.className="product";
+ const img=document.createElement("img");
+ img.src=p.image_front_small_url||p.image_url||"";
+ img.alt="";
+ const info=document.createElement("div");
+ const name=document.createElement("b");
+ name.textContent=p.product_name||"Unknown product";
+ const brand=document.createElement("div");
+ brand.textContent=p.brands||"";
+ brand.className="small";
+ info.append(name,brand);
+ el.append(img,info);
+ el.onclick=()=>showProduct(p);
+ $("results").append(el);
+ });
+}
+
+function showProduct(p){
+ selected=p;
+ const box=$("details");
+ box.innerHTML="";
+ const title=document.createElement("h2");
+ title.textContent=p.product_name||say("מוצר ללא שם","Unnamed product");
+ box.append(title);
+ if(p.image_url){
+ const img=document.createElement("img");img.src=p.image_url;img.alt="";box.append(img);
+ }
+ const add=(label,value)=>{
+ if(!value)return;
+ const line=document.createElement("p");
+ line.textContent=label+": "+value;
+ box.append(line);
+ };
+ add(say("מותג","Brand"),p.brands);
+ add("Barcode",p.code);
+ const ingredients=p.ingredients_text||p.ingredients_text_en||p.ingredients_text_he;
+ add(say("רכיבים כפי שנמסרו במאגר","Ingredients as listed in the database"),ingredients);
+ if(ingredients){
+ const heading=document.createElement("h3");
+ heading.textContent=say("הערות כלליות","General notes");
+ box.append(heading);
+ const note=document.createElement("p");
+ note.className="small";
+ note.textContent=say("רשימת הרכיבים עשויה להיות חלקית. התאמה תלויה גם בסוג השיער ובאופן השימוש.","The ingredient list may be incomplete. Suitability also depends on hair type and use.");
+ box.append(note);
+ }else{
+ const missing=document.createElement("p");
+ missing.textContent=say("לא מופיעה רשימת רכיבים במאגר. לכן לא ניתן לנתח את המוצר.","No ingredient list is available, so this product cannot be analyzed.");
+ box.append(missing);
+ }
+ const source=document.createElement("p");
+ source.className="small";
+ source.textContent=say("מקור: Open Beauty Facts. הנתונים מוזנים על ידי הקהילה ועשויים להיות חסרים או לא מאומתים.","Source: Open Beauty Facts. Community-contributed data may be incomplete or unverified.");
+ box.append(source);
+}
+
+async function scanBarcode(){
+ if(!("BarcodeDetector" in window)){
+ $("message").textContent=say("הדפדפן לא תומך בסריקת ברקוד. אפשר להקליד את המספר ידנית.","Barcode scanning is not supported. Enter the number manually.");
+ return;
+ }
+ try{
+ const detector=new BarcodeDetector();
+ const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
+ const video=document.createElement("video");
+ video.srcObject=stream;
+ await video.play();
+ const overlay=document.createElement("div");
+ overlay.style="position:fixed;inset:0;background:#000e;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center";
+ video.style="width:90%;max-height:65vh";
+ const close=document.createElement("button");
+ close.textContent=say("סגירה","Close");
+ close.onclick=()=>{stream.getTracks().forEach(t=>t.stop());overlay.remove()};
+ overlay.append(video,close);document.body.append(overlay);
+ const check=async()=>{
+ if(!overlay.isConnected)return;
+ const codes=await detector.detect(video);
+ if(codes.length){
+ $("barcodeInput").value=codes[0].rawValue;
+ close.click();barcodeSearch();return;
+ }
+ requestAnimationFrame(check);
+ };
+ check();
+ }catch(e){
+ $("message").textContent=say("לא ניתן לפתוח מצלמה. בדוק הרשאות מצלמה.","Could not open camera. Check camera permissions.");
+ }
+}
+</script>
+</body>
+  </html>
+  
